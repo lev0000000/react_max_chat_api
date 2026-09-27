@@ -1,46 +1,72 @@
 import React, { useContext, useEffect, useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
 import Form from 'react-bootstrap/Form';
-import { chats, currentChat } from "../http/getSettings";
+import { chats, currentChat, findChat, getInfoContact } from "../http/getSettings";
 import { ChatContext } from "../Providers/ChatContext";
 export default function Chats() {
     const [allChats, setAllChats] = useState([])
+    const [oneChat, setOneChat] = useState([])
+    const [value, setValue] = useState([])
+    const { currChat, setCurrChat } = useContext(ChatContext)
+    useEffect(() => {
+        const { data } = chats()
+            .then((data) => setAllChats(...allChats, data))
+        setOneChat(null)
 
-    const {currChat,setCurrChat} = useContext(ChatContext)
+    }, [])
 
-    useEffect(()=>{
-        const {data} = chats()
-        .then((data)=> setAllChats(...allChats, data ))
-    },[])
+    useEffect(() => {
+        if (value.length > 10) {
+            const data = findChat(value)
+                .then((data) => getInfoContact(data.chatId))
+                .then((data) => setOneChat([data]))
+        }
+        if(value.length < 10){
+            setOneChat(null)
+        }
 
-    const handleChat = async(item,name) => {
+    }, [value])
+
+    const handleChat = async (item, name) => {
         const data = await currentChat(item)
-        .then((data)=>{
-            setCurrChat(...currChat, {data,name,item })
-        })
-    }   
+            .then((data) => {
+                setCurrChat({...currChat, data, name, item} )
+            })
+    }
 
-    
 
-  return (
-    <div className="chat-sidebar d-flex flex-column gap-2 p-3 border-end w-25">
-      <h3 className="chat-title text-white">Чаты</h3>
 
-      <Form.Control className="chat-search" type="text" placeholder="Введите номер телефона" />
+    return (
+        <div className="chat-sidebar d-flex flex-column gap-2 p-3 border-end w-25">
+            <h3 className="chat-title text-white">Чаты</h3>
 
-      <ListGroup className="chat-list">
-        {allChats.map((item)=>{
-            return(
-                <ListGroup.Item action className="chat-item" key={item.chatId} onClick={()=>handleChat(item.chatId, item.name)}>
-                <div className="chat-info">
-                    <div className="chat-name">{item.name}</div>
-                    <div className="chat-message">Привет, как дела?</div>
-                </div>
+            <Form.Control className="chat-search" type="text" placeholder="Введите номер телефона" value={value} onChange={e => setValue(e.target.value)} />
+
+            <ListGroup className="chat-list">
+                {oneChat ?
+                    oneChat.map((item) => {
+                        return (
+                            <ListGroup.Item action className="chat-item" key={item.chatId} onClick={() => handleChat(item.chatId, item.contactName)}>
+                                <div className="chat-info">
+                                    <div className="chat-name">{item.contactName ?? item.chatId}</div>
+                                    <div className="chat-message"></div>
+                                </div>
+                            </ListGroup.Item>
+                        )
+                    })
+                :
+                allChats.map((item) => {
+                    return (
+                <ListGroup.Item action className="chat-item" key={item.chatId} onClick={() => handleChat(item.chatId, item.name)}>
+                    <div className="chat-info">
+                        <div className="chat-name">{item.name ?? item.chatId}</div>
+                        <div className="chat-message"></div>
+                    </div>
                 </ListGroup.Item>
-            )
-        })}
+                )
+                })}
 
-      </ListGroup>
-    </div>
-  );
+            </ListGroup>
+        </div>
+    );
 }

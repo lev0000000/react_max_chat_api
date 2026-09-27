@@ -1,6 +1,6 @@
 import { makeAutoObservable } from "mobx"
 
-export default class NotificationStore {
+class NotificationStore {
     
     updateTrigger = 0;
 
@@ -10,7 +10,10 @@ export default class NotificationStore {
 
     notify() {
         this.updateTrigger++;
+        console.log("NOTIFY:", this.updateTrigger);
+
     }
 
 }
 
+export default new NotificationStore();

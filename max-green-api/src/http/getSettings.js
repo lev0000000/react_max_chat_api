@@ -1,11 +1,8 @@
 import { useContext } from "react";
 import { $host } from "./index";
 
-import NotificationStore from "../store/NotificationStore";
-
 const id = localStorage.getItem('Id')
 const api = localStorage.getItem('Api')
-const notification = new NotificationStore()
 
 export const login = async (Id, ApiToken) => {
     const data = await $host.get(
@@ -24,6 +21,26 @@ export const chats = async () => {
 
     return data;
 }
+
+export const findChat = async (phone) => {
+    const { data } = await $host.post(
+        `/waInstance${id}/checkAccount/${api}`,
+        { phoneNumber:phone }
+    )
+
+    return data;
+}
+
+
+export const getInfoContact = async (chatId) => {
+    const { data } = await $host.post(
+        `/waInstance${id}/getContactInfo/${api}`,
+        { chatId:chatId }
+    )
+
+    return data;
+}
+
 
 export const currentChat = async (chatId, count = 20) => {
     const { data } = await $host.post(
@@ -45,9 +62,6 @@ export const getNotification = async () => {
     const { data } = await $host.get(
         `/waInstance${id}/receiveNotification/${api}`
     );
-
-
-
     return data;
 
 }
